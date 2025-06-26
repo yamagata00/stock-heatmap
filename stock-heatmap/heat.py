@@ -4,16 +4,17 @@ import yfinance as yf
 import plotly.express as px
 import time
 
-# ページレイアウト（横幅最大化）
+# ページ設定
 st.set_page_config(layout="wide", page_title="株価ヒートマップ")
 
-# 銘柄リスト（固定）
-tickers = ["NEE", "T", "VZ", "CSCO", "TSLA", "AMD"]
+# 🔽 銘柄をユーザーが入力（初期値付き）
+tickers_input = st.text_input("銘柄コード（カンマ区切りで入力）", value="NEE, T, VZ, CSCO, TSLA, AMD")
+tickers = [t.strip().upper() for t in tickers_input.split(",") if t.strip()]
 
-# 更新間隔スライダーのみ
+# 🔽 更新間隔を選択（デフォルト30秒）
 interval = st.slider("更新間隔（秒）", min_value=10, max_value=300, value=30)
 
-# 株価取得・処理関数
+# 🔽 株価変化率を取得する関数
 def get_price_changes(tickers):
     raw_data = yf.download(tickers, period="2d", interval="1d", group_by="ticker")
     records = []
@@ -40,12 +41,17 @@ custom_colors = [
     [1.0, "#00AA00"]
 ]
 
-# 描画ループ
+# 🔁 グラフ描画と定期更新
 placeholder = st.empty()
 while True:
+    if not tickers:
+        st.warning("銘柄を1つ以上入力してください。")
+        time.sleep(interval)
+        continue
+
     df = get_price_changes(tickers)
     if df.empty:
-        st.warning("データ取得に失敗しました。")
+        st.warning("データ取得に失敗しました。銘柄コードを確認してください。")
     else:
         fig = px.treemap(
             df,
