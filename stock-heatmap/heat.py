@@ -7,8 +7,14 @@ import time
 # ページ設定
 st.set_page_config(layout="wide", page_title="株価ヒートマップ")
 
-# 🔽 銘柄をユーザーが入力（初期値付き）
-tickers_input = st.text_input("銘柄コード（カンマ区切りで入力）", value="NEE, T, VZ, CSCO, TSLA, AMD")
+# URLパラメータから銘柄を取得
+params = st.experimental_get_query_params()
+default_symbols = params.get("symbols", ["NEE, T, VZ, CSCO, TSLA, AMD"])[0]
+
+# 銘柄入力欄（初期値はURLから）
+tickers_input = st.text_input("銘柄コード（カンマ区切りで入力）", value=default_symbols)
+st.experimental_set_query_params(symbols=tickers_input)
+
 tickers = [t.strip().upper() for t in tickers_input.split(",") if t.strip()]
 
 # 🔽 更新間隔を選択（デフォルト30秒）
@@ -79,4 +85,6 @@ while True:
         placeholder.plotly_chart(fig, use_container_width=True)
 
     time.sleep(interval)
+
+
 
